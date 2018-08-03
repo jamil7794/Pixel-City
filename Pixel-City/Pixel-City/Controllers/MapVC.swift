@@ -11,11 +11,12 @@ import MapKit
 import CoreLocation
 
 class MapVC: UIViewController, UIGestureRecognizerDelegate {
-    @IBOutlet weak var mapView: MKMapView!
     
+    @IBOutlet weak var mapView: MKMapView!
     var locationManager = CLLocationManager()
     let authorizationStatus = CLLocationManager.authorizationStatus() // Keeps Track
     let regionRadius: Double = 1000
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         mapView.delegate = self
@@ -57,6 +58,18 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
 }
 
 extension MapVC: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        // Customize the pin drop
+        
+        if annotation is MKUserLocation {
+            return nil
+        }
+        let pinAnnotation = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "droppablePin")
+        pinAnnotation.pinTintColor = #colorLiteral(red: 0.9771530032, green: 0.7062081099, blue: 0.1748393774, alpha: 1)
+        pinAnnotation.animatesDrop = true
+        return pinAnnotation
+    }
     func centerMapOnUserLocation(){ // Center the coordinate on user location
         guard let coordinate = locationManager.location?.coordinate else {return}
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(coordinate, regionRadius * 2.0, regionRadius * 2.0)
