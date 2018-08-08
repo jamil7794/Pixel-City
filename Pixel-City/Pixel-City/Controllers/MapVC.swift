@@ -9,6 +9,9 @@
 import UIKit
 import MapKit
 import CoreLocation
+import Alamofire
+import AlamofireImage
+import SwiftyJSON
 
 class MapVC: UIViewController, UIGestureRecognizerDelegate {
     
@@ -24,6 +27,8 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
     var progressLbl: UILabel?
     var collectionView: UICollectionView?
     var flowLayout = UICollectionViewFlowLayout()
+    var imageUrlArray = [String]()
+    var imageArray = [UIImage]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,7 +90,7 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
         progressLbl?.font = UIFont(name: "Avenir Next", size: 18)
         progressLbl?.textColor = #colorLiteral(red: 0.3266413212, green: 0.4215201139, blue: 0.7752227187, alpha: 1)
         progressLbl?.textAlignment = .center
-        progressLbl?.text = "Yo"
+        progressLbl?.text = "Hello"
         collectionView?.addSubview(progressLbl!)
     }
     
@@ -111,11 +116,13 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
         removePin()
         removeSpinner()
         removeProgressLbl()
+        cancelAllSessions()
         
         animateViewUp()
         addSwipe()
         addSpinner()
         addProgressLbl()
+        
         let touchPoint = sender.location(in: mapView)
         let touchCoordinate = mapView.convert(touchPoint, toCoordinateFrom: mapView)
         
@@ -124,11 +131,63 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
         
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(touchCoordinate, regionRadius * 2.0, regionRadius * 2.0)
         mapView.setRegion(coordinateRegion, animated: true)
+        
+        retrieveUrls(forAnnotation: annotation) { (finished) in
+            if finished { // When the first one is done, the second one starts
+                self.retrieveImages(handler: { (finished) in
+                    if finished{
+                        self.spinner?.isHidden = true
+                        self.removeProgressLbl()
+                        // CollectionView
+                    }
+                })
+            }
+        }
     }
     
     func removePin(){
         for annotation in mapView.annotations {
             mapView.removeAnnotation(annotation)
+        }
+    }
+    
+    func cancelAllSessions(){
+        Alamofire.SessionManager.default.session.getTasksWithCompletionHandler { (sessionDataTask, uploadData, downloadedData) in
+            sessionDataTask.forEach({ $0.cancel()}) // Instead of using for loop The sessionsDataTask from ALamofire will be canceled
+            
+            downloadedData.forEach({ $0.cancel()}) // Instead of using for loop The downloaded from ALamofire will be canceled
+        }
+    }
+    
+    func retrieveUrls(forAnnotation annotation: DroppablePin, handler: @escaping (_ status: Bool) ->()){
+        imageUrlArray = [] // make it empty
+        
+        Alamofire.request(flickrUrl(forApikey: apiKey, withAnnotation: annotation, numberOfPhotos: 40)).responseJSON { (response) in
+            
+                guard let json = response.result.value as? Dictionary<String, AnyObject> else {return}
+                let photosDict = json["photos"] as! Dictionary<String, AnyObject>
+                let photosDictArray = photosDict["photo"] as! [Dictionary<String, AnyObject>]
+                for photo in photosDictArray{
+                    let postUrl = "https://farm\(photo["farm"]!).staticflickr.com/\(photo["server"]!)/\(photo["id"]!)_\(photo["secret"]!)_h_d.jpg"
+                    self.imageUrlArray.append(postUrl)
+                }
+                handler(true)
+        }
+    }
+    
+    func retrieveImages(handler: @escaping (_ status: Bool)-> ()){
+        imageArray = []
+        
+        for url in imageUrlArray {
+            Alamofire.request(url).responseImage { (response) in
+                guard let image = response.result.value else {return}
+                self.imageArray.append(image)
+                self.progressLbl?.text = "\(self.imageArray.count)/40 Images Downloaded"
+                
+                if self.imageArray.count == self.imageUrlArray.count {
+                    handler(true)
+                }
+            }
         }
     }
 }
