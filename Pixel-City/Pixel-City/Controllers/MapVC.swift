@@ -14,6 +14,7 @@ import AlamofireImage
 import SwiftyJSON
 
 class MapVC: UIViewController, UIGestureRecognizerDelegate {
+
     
     @IBOutlet weak var mapView: MKMapView!
     var locationManager = CLLocationManager()
@@ -29,7 +30,10 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
     var flowLayout = UICollectionViewFlowLayout()
     var imageUrlArray = [String]()
     var imageArray = [UIImage]()
-    
+    var titlePic = [String]()
+    var isFriendPic = [Int]()
+    var pin: DroppablePin! = nil
+   
     override func viewDidLoad() {
         super.viewDidLoad()
         mapView.delegate = self
@@ -50,8 +54,8 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
     }
     
     func addDoubleTap(){
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(dropPin(sender:)))
-        doubleTap.numberOfTapsRequired = 2
+        let doubleTap = UILongPressGestureRecognizer(target: self, action: #selector(dropPin(sender:)))
+       // doubleTap.numberOfTapsRequired = 2
         doubleTap.delegate = self
         mapView.addGestureRecognizer(doubleTap)
     }
@@ -100,6 +104,7 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
             progressLbl?.removeFromSuperview()
         }
     }
+    
     @IBAction func centerMapButtonWasPressed(_ sender: Any) {
         if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse{
             centerMapOnUserLocation()
@@ -119,6 +124,8 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
 //    @objc func MoveView(){
 //
 //    }
+    
+    
     
     @objc func dropPin(sender: UITapGestureRecognizer){
         removePin()
@@ -140,7 +147,10 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
         let touchCoordinate = mapView.convert(touchPoint, toCoordinateFrom: mapView)
         
         let annotation = DroppablePin(coordinate: touchCoordinate, identifier: "droppablePin")
+        pin = annotation
         mapView.addAnnotation(annotation)
+       // guard let popVC = storyboard?.instantiateViewController(withIdentifier: "PopVC") as? PopVC else {return}
+        
         
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(touchCoordinate, regionRadius * 2.0, regionRadius * 2.0)
         mapView.setRegion(coordinateRegion, animated: true)
@@ -181,9 +191,15 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
                 for photo in photosDictArray{
                     let postUrl = "https://farm\(photo["farm"]!).staticflickr.com/\(photo["server"]!)/\(photo["id"]!)_\(photo["secret"]!)_h_d.jpg"
                     self.imageUrlArray.append(postUrl)
+                    let title = photo["title"] as! String
+                    let isfriend = photo["isfriend"] as! Int
+                    self.titlePic.append(title)
+                    self.isFriendPic.append(isfriend)
+                    //print(postUrl)
                 }
                 handler(true)
         }
+        
     }
     
     func retrieveImages(handler: @escaping (_ status: Bool)-> ()){
@@ -199,7 +215,9 @@ class MapVC: UIViewController, UIGestureRecognizerDelegate {
             }
         }
     }
+    
 }
+
 
 extension MapVC: MKMapViewDelegate {
     
@@ -242,7 +260,14 @@ extension MapVC: UICollectionViewDelegate, UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as? PhotoCell else { return UICollectionViewCell()}
         let imageFromIndex = imageArray[indexPath.row]
         let imageView = UIImageView(image: imageFromIndex)
+        
+        let friendIndex = isFriendPic[indexPath.row]
+        let friends : UILabel?
+        friends = UILabel()
+        friends?.text = "\(friendIndex)"
+        print(friendIndex)
         cell.addSubview(imageView)
+        cell.addSubview(friends!)
         removeSpinner()
         return cell
     }
@@ -257,7 +282,7 @@ extension MapVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let popVC = storyboard?.instantiateViewController(withIdentifier: "PopVC") as? PopVC else {return}
-        popVC.initData(forImage: imageArray[indexPath.row])
+        popVC.initData(forImage: imageArray[indexPath.row], title: titlePic[indexPath.row], annotation: pin)
         present(popVC, animated: true, completion: nil)
     }
 }
@@ -267,7 +292,7 @@ extension MapVC: UIViewControllerPreviewingDelegate { //3D touch
         // where are we pressing from
         guard let indexPath = collectionView?.indexPathForItem(at: location), let cell = collectionView?.cellForItem(at: indexPath) else {return nil} // 2 combined together
         guard let popVC = storyboard?.instantiateViewController(withIdentifier: "PopVC") as? PopVC else {return nil}
-        popVC.initData(forImage: imageArray[indexPath.row])
+        popVC.initData(forImage: imageArray[indexPath.row], title: titlePic[indexPath.row], annotation: pin)
         previewingContext.sourceRect = cell.contentView.frame
         return popVC
     }

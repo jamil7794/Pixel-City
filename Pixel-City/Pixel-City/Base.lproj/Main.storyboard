@@ -118,20 +118,42 @@
                                     <constraint firstItem="asR-4U-fo0" firstAttribute="centerY" secondItem="y3D-0I-4Aw" secondAttribute="centerY" id="n5m-pl-XkU"/>
                                 </constraints>
                             </view>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="KVi-CL-L1O">
+                                <rect key="frame" x="16" y="58.5" width="100" height="100"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="7kj-5x-XWO"/>
+                                    <constraint firstAttribute="width" constant="100" id="gQs-E1-zyU"/>
+                                </constraints>
+                            </mapView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rpC-BM-y3D">
+                                <rect key="frame" x="16" y="38" width="300" height="0.0"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="300" id="Rat-KG-3Hr"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="rpC-BM-y3D" firstAttribute="leading" secondItem="Pe5-dU-toj" secondAttribute="leading" constant="16" id="6UX-3y-Htr"/>
                             <constraint firstItem="w0P-7f-tiQ" firstAttribute="trailing" secondItem="Pe5-dU-toj" secondAttribute="trailing" id="FG7-q7-alF"/>
                             <constraint firstItem="w0P-7f-tiQ" firstAttribute="top" secondItem="ZAw-1d-ZdJ" secondAttribute="top" id="IiN-07-6hn"/>
                             <constraint firstItem="w0P-7f-tiQ" firstAttribute="leading" secondItem="Pe5-dU-toj" secondAttribute="leading" id="O3A-fa-RaP"/>
+                            <constraint firstItem="rpC-BM-y3D" firstAttribute="top" secondItem="Pe5-dU-toj" secondAttribute="top" constant="18" id="aNF-Ku-g8E"/>
+                            <constraint firstItem="KVi-CL-L1O" firstAttribute="top" secondItem="rpC-BM-y3D" secondAttribute="bottom" constant="20.5" id="eRu-db-lUn"/>
                             <constraint firstItem="Pe5-dU-toj" firstAttribute="bottom" secondItem="y3D-0I-4Aw" secondAttribute="bottom" constant="20" id="gJZ-V6-JVS"/>
                             <constraint firstItem="y3D-0I-4Aw" firstAttribute="centerX" secondItem="ZAw-1d-ZdJ" secondAttribute="centerX" id="nHq-HK-stg"/>
                             <constraint firstItem="w0P-7f-tiQ" firstAttribute="bottom" secondItem="Pe5-dU-toj" secondAttribute="bottom" id="ptS-Th-dWh"/>
+                            <constraint firstItem="KVi-CL-L1O" firstAttribute="leading" secondItem="Pe5-dU-toj" secondAttribute="leading" constant="16" id="u2e-aq-r1L"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Pe5-dU-toj"/>
                     </view>
                     <connections>
+                        <outlet property="mapView" destination="KVi-CL-L1O" id="pUl-AU-vNq"/>
                         <outlet property="popImageView" destination="w0P-7f-tiQ" id="5RR-oB-7oC"/>
+                        <outlet property="titleLbl" destination="rpC-BM-y3D" id="StD-k7-Cda"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yxK-SS-cu6" userLabel="First Responder" sceneMemberID="firstResponder"/>
